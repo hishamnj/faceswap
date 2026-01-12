@@ -23,6 +23,7 @@ RUN pip3 install --no-cache-dir \
     "numpy<2" \
     torch torchvision \
     insightface \
+    onnxruntime-gpu \
     opencv-python==4.8.1.78 \
     gfpgan \
     boto3 \
