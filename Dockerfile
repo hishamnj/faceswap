@@ -25,7 +25,8 @@ RUN pip3 install --no-cache-dir \
     opencv-python==4.8.1.78 \
     gfpgan \
     boto3 \
-    runpod
+    fastapi \
+    uvicorn
 
 ENV INSIGHTFACE_HOME=/models
 ENV PYTHONUNBUFFERED=1
