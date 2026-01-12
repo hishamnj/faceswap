@@ -1,24 +1,35 @@
-FROM nvidia/cuda:12.1.1-cudnn8-runtime-ubuntu22.04
+FROM nvidia/cuda:12.1.1-cudnn8-devel-ubuntu22.04
 
 WORKDIR /app
 
-RUN apt update && apt install -y \
-    python3 python3-pip libgl1 wget git && \
-    rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-pip \
+    libgl1 \
+    libglib2.0-0 \
+    libsm6 \
+    libxrender1 \
+    libxext6 \
+    ca-certificates \
+    wget \
+    git \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --upgrade pip
+RUN ldconfig
 
-RUN pip install \
+RUN pip3 install --no-cache-dir --upgrade pip
+
+RUN pip3 install --no-cache-dir \
     torch torchvision \
     insightface \
-    opencv-python-headless \
+    opencv-python==4.8.1.78 \
     gfpgan \
     boto3 \
     runpod
 
 ENV INSIGHTFACE_HOME=/models
+ENV PYTHONUNBUFFERED=1
 
 COPY handler.py .
 
-CMD ["python3", "handler.py"]
-
+CMD ["python3", "-u", "handler.py"]

@@ -1,5 +1,7 @@
 import runpod
+
 import boto3
+
 import cv2
 import os
 from insightface.app import FaceAnalysis
