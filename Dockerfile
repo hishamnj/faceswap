@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y \
     libxext6 \
     ca-certificates \
     wget \
+    unzip \
     git \
     && rm -rf /var/lib/apt/lists/*
 
@@ -32,11 +33,16 @@ RUN pip3 install --no-cache-dir \
 
 RUN sed -i "s/from torchvision.transforms.functional_tensor import rgb_to_grayscale/from torchvision.transforms.functional import rgb_to_grayscale/g" /usr/local/lib/python3.10/dist-packages/basicsr/data/degradations.py
 
-# Pre-download the inswapper model during build
+# Pre-download InsightFace models during build
 RUN mkdir -p /root/.insightface/models && \
     cd /root/.insightface/models && \
-    wget -q https://github.com/deepinsight/insightface/releases/download/v0.7/inswapper_128.onnx || \
-    wget -q https://huggingface.co/ezioruan/inswapper_128.onnx/resolve/main/inswapper_128.onnx
+    # Download inswapper model
+    (wget -q https://github.com/deepinsight/insightface/releases/download/v0.7/inswapper_128.onnx || \
+     wget -q https://huggingface.co/ezioruan/inswapper_128.onnx/resolve/main/inswapper_128.onnx) && \
+    # Download and extract buffalo_l model pack
+    wget -q https://github.com/deepinsight/insightface/releases/download/v0.7/buffalo_l.zip && \
+    unzip -q buffalo_l.zip && \
+    rm buffalo_l.zip
 
 ENV INSIGHTFACE_HOME=/root/.insightface
 ENV PYTHONUNBUFFERED=1
