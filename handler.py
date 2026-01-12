@@ -8,8 +8,7 @@ import cv2
 from insightface.app import FaceAnalysis
 from insightface.model_zoo import get_model
 from gfpgan import GFPGANer
-
-app = FastAPI()
+from contextlib import asynccontextmanager
 
 # AWS S3 Client
 s3 = boto3.client("s3")
@@ -69,9 +68,14 @@ def face_swap(role_img, child_img):
         paste_back=True
     )
 
-@app.on_event("startup")
-async def startup_event():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Load models on startup
     init_models()
+    yield
+    # Clean up (if needed)
+
+app = FastAPI(lifespan=lifespan)
 
 @app.get("/ping")
 async def health_check():
