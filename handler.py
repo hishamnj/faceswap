@@ -35,11 +35,16 @@ def init_models():
 
     if swapper is None:
         print("Initializing InSwapper...")
-        swapper = get_model(
-            "inswapper_128.onnx",
-            download=True,
-            providers=["CUDAExecutionProvider"]
-        )
+        model_path = "/root/.insightface/models/inswapper_128.onnx"
+        if os.path.exists(model_path):
+            swapper = get_model(model_path, providers=["CUDAExecutionProvider"])
+        else:
+            # Fallback to download if not found
+            swapper = get_model(
+                "inswapper_128.onnx",
+                download=True,
+                providers=["CUDAExecutionProvider"]
+            )
 
     if gfpgan is None:
         print("Initializing GFPGAN...")

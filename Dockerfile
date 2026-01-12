@@ -32,7 +32,13 @@ RUN pip3 install --no-cache-dir \
 
 RUN sed -i "s/from torchvision.transforms.functional_tensor import rgb_to_grayscale/from torchvision.transforms.functional import rgb_to_grayscale/g" /usr/local/lib/python3.10/dist-packages/basicsr/data/degradations.py
 
-ENV INSIGHTFACE_HOME=/models
+# Pre-download the inswapper model during build
+RUN mkdir -p /root/.insightface/models && \
+    cd /root/.insightface/models && \
+    wget -q https://github.com/deepinsight/insightface/releases/download/v0.7/inswapper_128.onnx || \
+    wget -q https://huggingface.co/ezioruan/inswapper_128.onnx/resolve/main/inswapper_128.onnx
+
+ENV INSIGHTFACE_HOME=/root/.insightface
 ENV PYTHONUNBUFFERED=1
 
 COPY handler.py .
