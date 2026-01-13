@@ -118,7 +118,7 @@ async def generate(request: FaceSwapRequest):
         swapped = face_swap(role_img, child_img)
 
         restored, _, _ = gfpgan.enhance(
-            swapped, has_aligned=False, only_center_face=False
+            swapped, has_aligned=False, only_center_face=True
         )
 
         # Normalize GFPGAN output
