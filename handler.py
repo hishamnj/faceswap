@@ -118,7 +118,7 @@ async def generate(request: FaceSwapRequest):
         swapped = face_swap(role_img, child_img)
 
         restored, _, _ = gfpgan.enhance(
-            swapped, has_aligned=False, only_center_face=True
+            swapped, has_aligned=False, only_center_face=False
         )
 
         # Normalize GFPGAN output
@@ -135,7 +135,7 @@ async def generate(request: FaceSwapRequest):
                 detail=f"Unexpected GFPGAN output type: {type(restored_img)}"
             )
 
-        cv2.imwrite(output_path, restored)
+        cv2.imwrite(output_path, restored_img)
 
         out_key = f"result-{os.path.basename(request.child_key)}"
         s3.upload_file(output_path, request.output_bucket, out_key)
