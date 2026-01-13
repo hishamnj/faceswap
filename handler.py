@@ -48,8 +48,11 @@ def init_models():
 
     if gfpgan is None:
         print("Initializing GFPGAN...")
+        model_path = "/root/.cache/gfpgan/weights/GFPGANv1.4.pth"
+        if not os.path.exists(model_path):
+            model_path = "GFPGANv1.4.pth"  # Fallback to auto-download
         gfpgan = GFPGANer(
-            model_path="GFPGANv1.4.pth",
+            model_path=model_path,
             upscale=1,
             arch="clean",
             channel_multiplier=2,
@@ -84,7 +87,10 @@ app = FastAPI(lifespan=lifespan)
 
 @app.get("/ping")
 async def health_check():
-    return {"status": "healthy"}
+    # Check if models are loaded
+    if face_app is None or swapper is None or gfpgan is None:
+        raise HTTPException(status_code=503, detail="Models not ready")
+    return {"status": "healthy", "models_loaded": True}
 
 @app.post("/generate")
 async def generate(request: FaceSwapRequest):

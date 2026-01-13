@@ -44,6 +44,11 @@ RUN mkdir -p /root/.insightface/models && \
     unzip -q buffalo_l.zip && \
     rm buffalo_l.zip
 
+# Pre-download GFPGAN model during build
+RUN mkdir -p /root/.cache/gfpgan/weights && \
+    cd /root/.cache/gfpgan/weights && \
+    wget -q https://github.com/TencentARC/GFPGAN/releases/download/v1.3.0/GFPGANv1.4.pth
+
 ENV INSIGHTFACE_HOME=/root/.insightface
 ENV PYTHONUNBUFFERED=1
 
