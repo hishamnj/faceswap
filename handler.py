@@ -67,14 +67,17 @@ def face_swap(role_img, child_img):
     faces_child = face_app.get(child_img)
 
     if not faces_role or not faces_child:
-        raise Exception("Face not detected")
+        raise Exception("Face not detected in one or both images")
 
-    return swapper.get(
+    # Swap child face into role image
+    result = swapper.get(
         role_img,
         faces_role[0],
         faces_child[0],
         paste_back=True
     )
+    
+    return result
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -115,8 +118,22 @@ async def generate(request: FaceSwapRequest):
         swapped = face_swap(role_img, child_img)
 
         restored, _, _ = gfpgan.enhance(
-            swapped, has_aligned=False, only_center_face=True
+            swapped, has_aligned=False, only_center_face=False
         )
+
+        # Normalize GFPGAN output
+        if isinstance(restored, list):
+            if len(restored) == 0:
+                raise HTTPException(status_code=500, detail="GFPGAN returned no faces")
+            restored_img = restored[0]
+        else:
+            restored_img = restored
+
+        if not isinstance(restored_img, type(swapped)):
+            raise HTTPException(
+                status_code=500,
+                detail=f"Unexpected GFPGAN output type: {type(restored_img)}"
+            )
 
         cv2.imwrite(output_path, restored)
 
