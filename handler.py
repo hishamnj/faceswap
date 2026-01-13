@@ -137,7 +137,7 @@ async def generate(request: FaceSwapRequest):
 
         cv2.imwrite(output_path, restored)
 
-        out_key = f"result-{request_id}-{os.path.basename(request.child_key)}"
+        out_key = f"result-{os.path.basename(request.child_key)}"
         s3.upload_file(output_path, request.output_bucket, out_key)
 
         return {
