@@ -26,12 +26,9 @@ RUN pip3 install --no-cache-dir \
     insightface \
     onnxruntime-gpu \
     opencv-python==4.8.1.78 \
-    gfpgan \
     boto3 \
     fastapi \
     uvicorn
-
-RUN sed -i "s/from torchvision.transforms.functional_tensor import rgb_to_grayscale/from torchvision.transforms.functional import rgb_to_grayscale/g" /usr/local/lib/python3.10/dist-packages/basicsr/data/degradations.py
 
 # Pre-download InsightFace models during build
 RUN mkdir -p /root/.insightface/models && \
@@ -43,11 +40,6 @@ RUN mkdir -p /root/.insightface/models && \
     wget -q https://github.com/deepinsight/insightface/releases/download/v0.7/buffalo_l.zip && \
     unzip -q buffalo_l.zip && \
     rm buffalo_l.zip
-
-# Pre-download GFPGAN model during build
-RUN mkdir -p /root/.cache/gfpgan/weights && \
-    cd /root/.cache/gfpgan/weights && \
-    wget -q https://github.com/TencentARC/GFPGAN/releases/download/v1.3.0/GFPGANv1.4.pth
 
 ENV INSIGHTFACE_HOME=/root/.insightface
 ENV PYTHONUNBUFFERED=1

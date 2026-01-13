@@ -7,7 +7,6 @@ import boto3
 import cv2
 from insightface.app import FaceAnalysis
 from insightface.model_zoo import get_model
-from gfpgan import GFPGANer
 from contextlib import asynccontextmanager
 
 # AWS S3 Client
@@ -16,7 +15,6 @@ s3 = boto3.client("s3")
 # Global model variables
 face_app = None
 swapper = None
-gfpgan = None
 
 class FaceSwapRequest(BaseModel):
     role_bucket: str
@@ -26,7 +24,7 @@ class FaceSwapRequest(BaseModel):
     output_bucket: str
 
 def init_models():
-    global face_app, swapper, gfpgan
+    global face_app, swapper
 
     if face_app is None:
         print("Initializing FaceAnalysis...")
@@ -45,19 +43,6 @@ def init_models():
                 download=True,
                 providers=["CUDAExecutionProvider"]
             )
-
-    if gfpgan is None:
-        print("Initializing GFPGAN...")
-        model_path = "/root/.cache/gfpgan/weights/GFPGANv1.4.pth"
-        if not os.path.exists(model_path):
-            model_path = "GFPGANv1.4.pth"  # Fallback to auto-download
-        gfpgan = GFPGANer(
-            model_path=model_path,
-            upscale=1,
-            arch="clean",
-            channel_multiplier=2,
-            device="cuda"
-        )
 
 def download(bucket, key, path):
     s3.download_file(bucket, key, path)
@@ -91,7 +76,7 @@ app = FastAPI(lifespan=lifespan)
 @app.get("/ping")
 async def health_check():
     # Check if models are loaded
-    if face_app is None or swapper is None or gfpgan is None:
+    if face_app is None or swapper is None:
         raise HTTPException(status_code=503, detail="Models not ready")
     return {"status": "healthy", "models_loaded": True}
 
@@ -117,25 +102,8 @@ async def generate(request: FaceSwapRequest):
 
         swapped = face_swap(role_img, child_img)
 
-        restored, _, _ = gfpgan.enhance(
-            swapped, has_aligned=False, only_center_face=False
-        )
-
-        # Normalize GFPGAN output
-        if isinstance(restored, list):
-            if len(restored) == 0:
-                raise HTTPException(status_code=500, detail="GFPGAN returned no faces")
-            restored_img = restored[0]
-        else:
-            restored_img = restored
-
-        if not isinstance(restored_img, type(swapped)):
-            raise HTTPException(
-                status_code=500,
-                detail=f"Unexpected GFPGAN output type: {type(restored_img)}"
-            )
-
-        cv2.imwrite(output_path, restored_img)
+        # Save the full swapped image directly (skip GFPGAN to preserve full image)
+        cv2.imwrite(output_path, swapped)
 
         out_key = f"result-{os.path.basename(request.child_key)}"
         s3.upload_file(output_path, request.output_bucket, out_key)
