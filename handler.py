@@ -49,7 +49,7 @@ def init_models():
     if gfpgan is None:
         print("Initializing GFPGAN...")
         gfpgan = GFPGANer(
-            model_path=None,
+            model_path="GFPGANv1.4.pth",
             upscale=1,
             arch="clean",
             channel_multiplier=2,
